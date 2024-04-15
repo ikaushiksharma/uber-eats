@@ -7,13 +7,16 @@ import {
 } from 'users/dtos/create-account.dto';
 import { User } from 'users/entities/user.entity';
 import { LoginInput } from './dtos/login.dto';
+import { ConfigService } from '@nestjs/config';
+import { JwtModule } from 'jwt/jwt.module';
+import { JwtService } from 'jwt/jwt.service';
 
 @Injectable()
-export class UsersService {
+export class UserService {
   constructor(
     @InjectRepository(User) private readonly users: Repository<User>,
+    private readonly jwtService: JwtService,
   ) {}
-
   async createAccount({
     email,
     password,
@@ -54,9 +57,12 @@ export class UsersService {
           error: '[App] Wrong password',
         };
       }
+
+      const token = this.jwtService.sign(user.id);
+
       return {
         ok: true,
-        token: 'llllllllllllll',
+        token,
       };
     } catch (error) {
       return {
