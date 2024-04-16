@@ -5,6 +5,7 @@ import {
   CreateAccountInput,
   CreateAccountOutput,
 } from 'users/dtos/create-account.dto';
+import { MailService } from 'mail/mail.service';
 import { User } from 'users/entities/user.entity';
 import { LoginInput } from './dtos/login.dto';
 import { EditProfileInput } from 'users/dtos/edit-profile.dto';
@@ -20,6 +21,7 @@ export class UsersService {
     @InjectRepository(Verification)
     private readonly verifications: Repository<Verification>,
     private readonly jwtService: JwtService,
+    private readonly mailService: MailService,
   ) {}
   async createAccount({
     email,
@@ -37,11 +39,12 @@ export class UsersService {
         this.users.create({ email, password, role }),
       );
 
-      await this.verifications.save(
+      const verification = await this.verifications.save(
         this.verifications.create({
           user,
         }),
       );
+      this.mailService.sendVerificationEmail(user.email, verification.code);
       return { ok: true };
     } catch (e) {
       return { ok: false, error: "Couldn't create account" };
@@ -107,12 +110,14 @@ export class UsersService {
     if (email) {
       user.email = email;
       user.verified = false;
-      await this.verifications.save(
+      const verification = await this.verifications.save(
         this.verifications.create({
           user,
         }),
       );
+      this.mailService.sendVerificationEmail(user.email, verification.code);
     }
+
     if (password) {
       user.password = password;
     }
@@ -128,8 +133,8 @@ export class UsersService {
       });
       if (verification) {
         verification.user.verified = true;
-        this.users.save(verification.user);
-
+        await this.users.save(verification.user);
+        await this.verifications.delete(verification.id);
         return { ok: true };
       }
       return { ok: false, error: 'Vefification not found.' };
