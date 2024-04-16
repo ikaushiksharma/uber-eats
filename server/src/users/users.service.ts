@@ -7,12 +7,11 @@ import {
 } from 'users/dtos/create-account.dto';
 import { User } from 'users/entities/user.entity';
 import { LoginInput } from './dtos/login.dto';
-import { ConfigService } from '@nestjs/config';
-import { JwtModule } from 'jwt/jwt.module';
+import { EditProfileInput } from 'users/dtos/edit-profile.dto';
 import { JwtService } from 'jwt/jwt.service';
 
 @Injectable()
-export class UserService {
+export class UsersService {
   constructor(
     @InjectRepository(User) private readonly users: Repository<User>,
     private readonly jwtService: JwtService,
@@ -74,5 +73,20 @@ export class UserService {
 
   async findById(id: number): Promise<User> {
     return this.users.findOne({ where: { id } });
+  }
+
+  async editProfile(
+    userId: number,
+    { email, password }: EditProfileInput,
+  ): Promise<User> {
+    const user = await this.users.findOne({ where: { id: userId } });
+    if (user) {
+      user.email = email;
+    }
+    if (password) {
+      user.password = password;
+    }
+
+    return this.users.save(user);
   }
 }
