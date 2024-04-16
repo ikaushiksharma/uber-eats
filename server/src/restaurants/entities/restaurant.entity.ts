@@ -13,26 +13,26 @@ export class Restaurant {
   @Column()
   @IsString()
   @Length(5, 10)
-  name: String;
+  name: string;
 
   @Field((type) => Boolean, { defaultValue: true })
   @Column({ default: true })
   @IsOptional()
   @IsBoolean()
-  isVegan: Boolean;
+  isVegan: boolean;
 
   @Field((type) => String)
   @Column()
   @IsString()
-  address: String;
+  address: string;
 
   @Field((type) => String)
   @Column()
   @IsString()
-  ownerName: String;
+  ownerName: string;
 
   @Field((type) => String)
   @Column()
   @IsString()
-  categoryName: String;
+  categoryName: string;
 }
